@@ -1,30 +1,65 @@
 name: Submit AzureML Pipeline
+
 on:
   push:
     branches: [ main ]
+
 permissions:
   contents: read
+
 env:
   RESOURCE_GROUP: "MS_AI_JUNE25"
   WORKSPACE_NAME: "MLS"
   DATASET_NAME: "used-cars-data"
   DATASET_PATH_IN_REPO: "data/used_cars.csv"
   PIPELINE_JOB_YAML: "azureml/pipeline_job.yml"
+
 jobs:
   submit-pipeline:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
-      - uses: azure/login@v1
+
+      # Step 3: Log in to Azure using Service Principal
+      - name: Azure Login
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - run: |
+
+      # Step 4: Verify Azure login (Optional but recommended)
+      - name: Verify Azure Login
+        run: az account show
+
+      # Step 5: Ensure Azure ML extension is installed and updated
+      - name: Install/Update Azure ML CLI Extension
+        run: |
           az extension add -n ml -y || true
           az extension update -n ml || true
-      - run: |
-          az ml data create --name ${{ env.DATASET_NAME }} --path ${{ github.workspace }}/${{ env.DATASET_PATH_IN_REPO }}             --type uri_file --workspace-name ${{ env.WORKSPACE_NAME }} --resource-group ${{ env.RESOURCE_GROUP }}
-      - run: |
-          az ml job create --file "${{ env.PIPELINE_JOB_YAML }}" --set inputs.raw_data="azureml:${{ env.DATASET_NAME }}@latest"
+
+      # Step 6: Register dataset in Azure ML workspace
+      - name: Register Dataset
+        run: |
+          az ml data create \
+            --name ${{ env.DATASET_NAME }} \
+            --path "${{ github.workspace }}/${{ env.DATASET_PATH_IN_REPO }}" \
+            --type uri_file \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+
+      # Step 7: Submit Azure ML pipeline job
+      - name: Submit Azure ML Pipeline Job
+        run: |
+          az ml job create \
+            --file "${{ env.PIPELINE_JOB_YAML }}" \
+            --set inputs.raw_data="azureml:${{ env.DATASET_NAME }}@latest" \
+            --workspace-name ${{ env.WORKSPACE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
