@@ -1,0 +1,14 @@
+name: used-cars-train-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      - scikit-learn
+      - pandas
+      - numpy
+      - mlflow
+      - azure-ai-ml
+      - joblib

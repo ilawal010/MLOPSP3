@@ -1,0 +1,6 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: used-cars-train-env
+display_name: used-cars-train-env
+version: 1
+image: mcr.microsoft.com/azureml/openmpi3.1.2-ubuntu18.04
+conda_file: azureml/environment.yml

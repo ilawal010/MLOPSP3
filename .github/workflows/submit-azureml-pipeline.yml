@@ -1,0 +1,30 @@
+name: Submit AzureML Pipeline
+on:
+  push:
+    branches: [ main ]
+permissions:
+  contents: read
+env:
+  RESOURCE_GROUP: "myResourceGroup"
+  WORKSPACE_NAME: "my-ml-workspace"
+  DATASET_NAME: "used-cars-data"
+  DATASET_PATH_IN_REPO: "data/used_cars.csv"
+  PIPELINE_JOB_YAML: "azureml/pipeline_job.yml"
+jobs:
+  submit-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - run: |
+          az extension add -n ml -y || true
+          az extension update -n ml || true
+      - run: |
+          az ml data create --name ${{ env.DATASET_NAME }} --path ${{ github.workspace }}/${{ env.DATASET_PATH_IN_REPO }}             --type uri_file --workspace-name ${{ env.WORKSPACE_NAME }} --resource-group ${{ env.RESOURCE_GROUP }}
+      - run: |
+          az ml job create --file "${{ env.PIPELINE_JOB_YAML }}" --set inputs.raw_data="azureml:${{ env.DATASET_NAME }}@latest"
