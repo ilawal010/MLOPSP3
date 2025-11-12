@@ -5,8 +5,8 @@ on:
 permissions:
   contents: read
 env:
-  RESOURCE_GROUP: "myResourceGroup"
-  WORKSPACE_NAME: "my-ml-workspace"
+  RESOURCE_GROUP: "MS_AI_JUNE25"
+  WORKSPACE_NAME: "MLS"
   DATASET_NAME: "used-cars-data"
   DATASET_PATH_IN_REPO: "data/used_cars.csv"
   PIPELINE_JOB_YAML: "azureml/pipeline_job.yml"
